@@ -20,7 +20,7 @@ func NewTransaction() *Transaction {
 	return &Transaction{}
 }
 
-// IsValid realiza a validação de uma entidade Transaction
+// IsValid verifica se a Transaction criada pode ser realizada
 func (t Transaction) IsValid() error {
 	if t.Amount > 1000 || t.Amount < 1 {
 		log.Printf("context: %v, err: %s", context.Background(), ErrLimitForTransaction.Error())

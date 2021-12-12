@@ -18,7 +18,7 @@ type CreditCard struct {
 	cvv             int
 }
 
-// NewCreditCard cria um novo catão de credito, caso os paramentros nãos seja válido um erro é retornado
+// NewCreditCard cria um novo catão de credito, caso os paramentros não seja válidos, um erro é retornado
 func NewCrediCard(number string, name string, expirationMonth int, expirationYear int, cvv int) (*CreditCard, error) {
 	new := &CreditCard{
 		number:          number,
