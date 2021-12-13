@@ -1,18 +1,25 @@
 package process_transaction
 
 import (
+	"github.com/JPauloMoura/payment-gateway/adapter/broker"
 	"github.com/JPauloMoura/payment-gateway/domain/entity"
 	"github.com/JPauloMoura/payment-gateway/domain/repository"
 )
 
 // ProcessTransaction define a estrutura de dados para realizar o processamento de uma trasação
 type ProcessTransaction struct {
-	Repository repository.TransactionRepository // inteface
+	Repository repository.TransactionRepository
+	Producer   broker.Producer
+	Topic      string
 }
 
 // NewProcessTransaction devolve uma processo de transação que pode ser realizado
-func NewProcessTransaction(repository repository.TransactionRepository) *ProcessTransaction {
-	return &ProcessTransaction{Repository: repository}
+func NewProcessTransaction(repository repository.TransactionRepository, producer broker.Producer, topic string) *ProcessTransaction {
+	return &ProcessTransaction{
+		Repository: repository,
+		Producer:   producer,
+		Topic:      topic,
+	}
 }
 
 // Execute realiza a execução de um processo de transação
@@ -61,6 +68,11 @@ func (p *ProcessTransaction) approveTransaction(transaction *entity.Transaction)
 		ErrorMessage: "",
 	}
 
+	// publica o evento de aprovação
+	if err = p.publish(output, []byte(transaction.ID)); err != nil {
+		return TransactionDtoOutput{}, err
+	}
+
 	return output, nil
 }
 
@@ -78,5 +90,19 @@ func (p ProcessTransaction) rejectTransaction(transaction *entity.Transaction, e
 		ErrorMessage: e.Error(),
 	}
 
+	// publica o evento de rejeição
+	if err = p.publish(output, []byte(transaction.ID)); err != nil {
+		return TransactionDtoOutput{}, err
+	}
+
 	return output, nil
+}
+
+// publish realiza a publicação do evento no Producer que foi implementado
+func (p *ProcessTransaction) publish(output TransactionDtoOutput, key []byte) error {
+	err := p.Producer.Publish(output, key, p.Topic)
+	if err != nil {
+		return err
+	}
+	return nil
 }

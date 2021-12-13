@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	mock_producer "github.com/JPauloMoura/payment-gateway/adapter/broker/mock"
 	"github.com/JPauloMoura/payment-gateway/domain/entity"
 	mock_repository "github.com/JPauloMoura/payment-gateway/domain/repository/mock"
 	"github.com/golang/mock/gomock"
@@ -38,15 +39,17 @@ func TestProcessTransaction_Execute_InvalidCrediCart(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	// cria um novo mock de um repository
+	// cria um novo mock de um repository e de um producer
 	repositoryMock := mock_repository.NewMockTransactionRepository(ctrl)
+	producerMock := mock_producer.NewMockProducer(ctrl)
 
-	// realiza o mock da entrada e saida desse cenário
+	// realiza o mock da entrada e saida do repository e producer
 	repositoryMock.EXPECT().
 		Insert(input.ID, input.AccountID, input.Amount, expected.Status, expected.ErrorMessage).
 		Return(nil)
+	producerMock.EXPECT().Publish(expected, []byte(input.ID), "transactions_result")
 
-	processTransaction := NewProcessTransaction(repositoryMock)
+	processTransaction := NewProcessTransaction(repositoryMock, producerMock, "transactions_result")
 	result, err := processTransaction.Execute(input)
 
 	assert.Nil(t, err)
@@ -81,15 +84,17 @@ func TestProcessTransaction_Execute_InvalidTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	// cria um novo mock de um repository
+	// cria um novo mock de um repository e de um producer
 	repositoryMock := mock_repository.NewMockTransactionRepository(ctrl)
+	producerMock := mock_producer.NewMockProducer(ctrl)
 
-	// realiza o mock da entrada e saida desse cenário
+	// realiza o mock da entrada e saida do repository e producer
 	repositoryMock.EXPECT().
 		Insert(input.ID, input.AccountID, input.Amount, expected.Status, expected.ErrorMessage).
 		Return(nil)
+	producerMock.EXPECT().Publish(expected, []byte(input.ID), "transactions_result")
 
-	processTransaction := NewProcessTransaction(repositoryMock)
+	processTransaction := NewProcessTransaction(repositoryMock, producerMock, "transactions_result")
 	result, err := processTransaction.Execute(input)
 
 	assert.Nil(t, err)
@@ -124,15 +129,17 @@ func TestProcessTransaction_Execute_ApprovedTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	// cria um novo mock de um repository
+	// cria um novo mock de um repository e de um producer
 	repositoryMock := mock_repository.NewMockTransactionRepository(ctrl)
+	producerMock := mock_producer.NewMockProducer(ctrl)
 
-	// realiza o mock da entrada e saida desse cenário
+	// realiza o mock da entrada e saida do repository e producer
 	repositoryMock.EXPECT().
 		Insert(input.ID, input.AccountID, input.Amount, expected.Status, expected.ErrorMessage).
 		Return(nil)
+	producerMock.EXPECT().Publish(expected, []byte(input.ID), "transactions_result")
 
-	processTransaction := NewProcessTransaction(repositoryMock)
+	processTransaction := NewProcessTransaction(repositoryMock, producerMock, "transactions_result")
 	result, err := processTransaction.Execute(input)
 
 	assert.Nil(t, err)
